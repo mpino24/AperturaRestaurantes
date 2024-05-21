@@ -28,7 +28,8 @@ const indexOwner = async function (req, res) {
         include: [{
           model: RestaurantCategory,
           as: 'restaurantCategory'
-        }]
+        }],
+        order: [['status', 'ASC']]
       })
     res.json(restaurants)
   } catch (err) {
@@ -79,6 +80,48 @@ const update = async function (req, res) {
     res.status(500).send(err)
   }
 }
+/*
+const changeStatus = async function (req, res) {
+  const t = await sequelizeSession.transaction()
+  try {
+    const restaurant = await Restaurant.findByPk(req.params.restaurantId)
+    if (restaurant.status === 'online') {
+      await Restaurant.update(
+        { status: 'offline' },
+        { where: { id: restaurant.restaurantId } },
+        { transaction: t }
+      )
+    } else {
+      await Restaurant.update(
+        { status: 'online' },
+        { where: { id: restaurant.restaurantId } },
+        { transaction: t }
+      )
+    }
+    await t.commit()
+    const restaurantU = await Restaurant.findByPk(req.params.restaurantId)
+    res.json(restaurantU)
+  } catch (err) {
+    await t.rollback()
+    res.status(500).send(err)
+  }
+}
+*/
+const changeStatus = async function (req, res) {
+  try {
+    const restaurant = await Restaurant.findByPk(req.params.restaurantId)
+
+    if (restaurant.status === 'online') {
+      restaurant.status = 'offline'
+    } else {
+      restaurant.status = 'online'
+    }
+    await restaurant.save()
+    res.json(restaurant)
+  } catch (err) {
+    res.status(500).send(err)
+  }
+}
 
 const destroy = async function (req, res) {
   try {
@@ -100,6 +143,7 @@ const RestaurantController = {
   indexOwner,
   create,
   show,
+  changeStatus,
   update,
   destroy
 }

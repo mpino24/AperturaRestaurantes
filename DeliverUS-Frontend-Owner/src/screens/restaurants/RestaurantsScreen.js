@@ -2,7 +2,7 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { StyleSheet, FlatList, Pressable, View } from 'react-native'
 
-import { getAll, remove } from '../../api/RestaurantEndpoints'
+import { getAll, remove, changeStatus } from '../../api/RestaurantEndpoints'
 import ImageCard from '../../components/ImageCard'
 import TextSemiBold from '../../components/TextSemibold'
 import TextRegular from '../../components/TextRegular'
@@ -77,6 +77,23 @@ export default function RestaurantsScreen ({ navigation, route }) {
             </TextRegular>
           </View>
         </Pressable>
+        {item.status !== 'closed' && item.status !== 'temporarily closed' && <Pressable
+            onPress={() => { changeStatusRestaurant(item) }}
+            style={({ pressed }) => [
+              {
+                backgroundColor: pressed
+                  ? GlobalStyles.brandGreenTap
+                  : GlobalStyles.brandGreen
+              },
+              styles.actionButton
+            ]}>
+          <View style={[{ flex: 1, flexDirection: 'row', justifyContent: 'center' }]}>
+            <MaterialCommunityIcons name='check' color={'white'} size={20}/>
+            <TextRegular textStyle={styles.text}>
+              {item.status}
+            </TextRegular>
+          </View>
+        </Pressable>}
         </View>
       </ImageCard>
     )
@@ -152,6 +169,26 @@ export default function RestaurantsScreen ({ navigation, route }) {
       })
     }
   }
+  const changeStatusRestaurant = async (restaurant) => {
+    try {
+      await changeStatus(restaurant.id)
+      await fetchRestaurants()
+      showMessage({
+        message: `Restaurant ${restaurant.name} succesfully changed`,
+        type: 'success',
+        style: GlobalStyles.flashStyle,
+        titleStyle: GlobalStyles.flashTextStyle
+      })
+    } catch (error) {
+      console.log(error)
+      showMessage({
+        message: `Restaurant ${restaurant.name} could not be changed.`,
+        type: 'error',
+        style: GlobalStyles.flashStyle,
+        titleStyle: GlobalStyles.flashTextStyle
+      })
+    }
+  }
 
   return (
     <>
@@ -195,7 +232,7 @@ const styles = StyleSheet.create({
     padding: 10,
     alignSelf: 'center',
     flexDirection: 'column',
-    width: '50%'
+    width: '30%'
   },
   actionButtonsContainer: {
     flexDirection: 'row',
